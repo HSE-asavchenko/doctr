@@ -33,6 +33,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         reco_predictor: RecognitionPredictor,
         assume_straight_pages: bool = True,
         export_as_straight_boxes: bool = False,
+        margin: int = 0, 
     ) -> None:
 
         super().__init__()
@@ -40,6 +41,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         self.reco_predictor = reco_predictor.eval()  # type: ignore[attr-defined]
         self.doc_builder = DocumentBuilder(export_as_straight_boxes=export_as_straight_boxes)
         self.assume_straight_pages = assume_straight_pages
+        self.margin=margin
 
     @torch.no_grad()
     def forward(
@@ -58,7 +60,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
         # Crop images
         crops, loc_preds = self._prepare_crops(
-            pages, loc_preds, channels_last=channels_last, assume_straight_pages=self.assume_straight_pages
+            pages, loc_preds, channels_last=channels_last, assume_straight_pages=self.assume_straight_pages, margin=self.margin
         )
         # Identify character sequences
         word_preds = self.reco_predictor([crop for page_crops in crops for crop in page_crops], **kwargs)
