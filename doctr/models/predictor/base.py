@@ -53,6 +53,8 @@ class _OCRPredictor:
 
         crops = _OCRPredictor._generate_crops(pages, loc_preds, channels_last, assume_straight_pages, margin)
 
+        crops = _OCRPredictor._generate_crops(pages, loc_preds, channels_last, assume_straight_pages, margin)
+
         # Avoid sending zero-sized crops
         is_kept = [[all(s > 0 for s in crop.shape) for crop in page_crops] for page_crops in crops]
         crops = [
