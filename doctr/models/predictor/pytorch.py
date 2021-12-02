@@ -13,6 +13,7 @@ from doctr.io.elements import Document
 from doctr.models.builder import DocumentBuilder
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
+from typing import Tuple
 
 from .base import _OCRPredictor
 
@@ -25,6 +26,11 @@ class OCRPredictor(nn.Module, _OCRPredictor):
     Args:
         det_predictor: detection module
         reco_predictor: recognition module
+        assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
+            without rotated textual elements.
+        export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions
+            (potentially rotated) as straight bounding boxes.
+
     """
 
     def __init__(
@@ -33,7 +39,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         reco_predictor: RecognitionPredictor,
         assume_straight_pages: bool = True,
         export_as_straight_boxes: bool = False,
-        margin: int = 0, 
+        margin: Tuple[int] = None, 
     ) -> None:
 
         super().__init__()
@@ -65,9 +71,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         # Identify character sequences
         word_preds = self.reco_predictor([crop for page_crops in crops for crop in page_crops], **kwargs)
 
-        boxes, text_preds = self._process_predictions(
-            loc_preds, word_preds, allow_rotated_boxes=not self.doc_builder.export_as_straight_boxes
-        )
+        boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 
         out = self.doc_builder(
             boxes,

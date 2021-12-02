@@ -5,7 +5,7 @@
 
 from math import floor
 from statistics import median_low
-from typing import List
+from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -13,7 +13,7 @@ import numpy as np
 __all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'get_bitmap_angle']
 
 
-def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True, margin: int = 0) -> List[np.ndarray]:
+def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True, margin: Tuple[int] = None) -> List[np.ndarray]:
     """Created cropped images from list of bounding boxes
 
     Args:
@@ -39,10 +39,11 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True
         _boxes = _boxes.round().astype(int)
         # Add last index
         _boxes[2:] += 1
-    #_boxes[:,[0,1]]-=margin
-    #_boxes[:,[2,3]]+=margin
-    _boxes[:,1]-=margin
-    #_boxes[:,[3]]+=margin
+    if margin is not None:      
+        _boxes[:,0]-=margin[0]
+        _boxes[:,1]-=margin[1]
+        _boxes[:,2]+=margin[2]
+        _boxes[:,3]+=margin[3]
     if channels_last:
         return [img[box[1]: box[3], box[0]: box[2]] for box in _boxes]
     else:
@@ -54,7 +55,7 @@ def extract_rcrops(
     boxes: np.ndarray,
     dtype=np.float32,
     channels_last: bool = True, 
-    margin: int = 0
+    margin: Tuple[int] = None
 ) -> List[np.ndarray]:
     """Created cropped images from list of rotated bounding boxes
 
@@ -80,6 +81,11 @@ def extract_rcrops(
         _boxes[:, [0, 2]] *= width
         _boxes[:, [1, 3]] *= height
 
+    if margin is not None:      
+        _boxes[:,0]-=margin[0]
+        _boxes[:,1]-=margin[1]
+        _boxes[:,2]+=margin[2]
+        _boxes[:,3]+=margin[3]
     #_boxes[:,[0,1]]-=margin
     #_boxes[:,[2,3]]+=margin
 

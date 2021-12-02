@@ -271,8 +271,14 @@ def synthesize_page(
     for block in page["blocks"]:
         for line in block["lines"]:
             for word in line["words"]:
-                # Get aboslute word geometry
-                (xmin, ymin), (xmax, ymax) = word["geometry"]
+                if len(word['geometry']) == 5:
+                    xmin, ymin, width, height,a = word["geometry"]
+                    xmin-=width/2
+                    ymin-=height/2
+                    xmax=xmin+width
+                    ymax=ymin+height
+                else:
+                    (xmin, ymin), (xmax, ymax) = word["geometry"]
                 xmin, xmax = int(round(w * xmin)), int(round(w * xmax))
                 ymin, ymax = int(round(h * ymin)), int(round(h * ymax))
 
