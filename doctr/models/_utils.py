@@ -86,8 +86,6 @@ def extract_rcrops(
         _boxes[:,1]-=margin[1]
         _boxes[:,2]+=margin[2]
         _boxes[:,3]+=margin[3]
-    #_boxes[:,[0,1]]-=margin
-    #_boxes[:,[2,3]]+=margin
 
     crops = []
     # Determine rotation direction (clockwise/counterclockwise)
@@ -164,7 +162,11 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
             angles.append(angle)
         elif w / h < 1 / ratio_threshold_for_lines:  # if lines are vertical, substract 90 degree
             angles.append(angle - 90)
-    return -median_low(angles)
+
+    if len(angles) == 0:
+        return 0  # in case no angles is found
+    else:
+        return -median_low(angles)
 
 
 def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.) -> float:
