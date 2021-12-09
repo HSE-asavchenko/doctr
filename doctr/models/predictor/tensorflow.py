@@ -46,7 +46,10 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         assume_straight_pages: bool = True,
         export_as_straight_boxes: bool = False,
         straighten_pages: bool = False,
+<<<<<<< HEAD
         margin: Tuple[int] = None,
+=======
+>>>>>>> c2af6e9bab2abcad2492904651058582bccd089a
     ) -> None:
 
         super().__init__()
@@ -56,6 +59,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
         self.margin=margin
+
 
     def __call__(
         self,
