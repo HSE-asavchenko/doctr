@@ -187,3 +187,64 @@ def test_charactergenerator():
     assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(targets, tf.Tensor) and targets.shape == (2,)
     assert targets.dtype == tf.int32
+
+
+@pytest.mark.parametrize(
+    "size, rotate",
+    [
+        [5, True],  # Actual set has 229 train and 233 test samples
+        [5, False]
+
+    ],
+)
+def test_ic13_dataset(mock_ic13, size, rotate):
+    input_size = (512, 512)
+    ds = datasets.IC13(
+        *mock_ic13,
+        sample_transforms=Resize(input_size),
+        rotated_bbox=rotate,
+    )
+
+    assert len(ds) == size
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.shape[:2] == input_size
+    assert img.dtype == tf.float32
+    assert isinstance(target, dict)
+    assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+
+    loader = DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
+@pytest.mark.parametrize(
+    "input_size, size, rotate",
+    [
+        [[32, 128], 3, True],  # Actual set has 33402 training samples and 13068 test samples
+        [[32, 128], 3, False],
+    ],
+)
+def test_svhn(input_size, size, rotate, mock_svhn_dataset):
+    # monkeypatch the path to temporary dataset
+    datasets.SVHN.TRAIN = (mock_svhn_dataset, None, "svhn_train.tar")
+
+    ds = datasets.SVHN(
+        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        cache_dir=mock_svhn_dataset, cache_subdir="svhn",
+    )
+
+    assert len(ds) == size
+    assert repr(ds) == f"SVHN(train={True})"
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.shape == (*input_size, 3)
+    assert img.dtype == tf.float32
+    assert isinstance(target, dict)
+
+    loader = datasets.DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
